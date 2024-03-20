@@ -8,10 +8,12 @@ const useWeatherData = (location, apiKey) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let debounceTimer;
     const fetchData = async () => {
       try {
         setLoading(true);
         const response = await axios.get(`${REALTIME_API_BASE_URL}?location=${location}&apikey=${apiKey}`);
+        console.log("realtime", response);
         setWeatherData(response.data);
         setLoading(false);
         setError(null);
@@ -21,9 +23,16 @@ const useWeatherData = (location, apiKey) => {
       }
     };
 
-    fetchData();
+    const debouncedFetchData = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(fetchData, 500);
+    };
 
-    return () => {};
+    if(location && apiKey){
+      debouncedFetchData();
+    }
+
+    return () => clearTimeout(debounceTimer);
   }, [location, apiKey]);
 
   return { weatherData, loading, error };
